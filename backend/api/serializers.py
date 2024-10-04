@@ -47,7 +47,7 @@ class CreateUserSerializer(serializers.ModelSerializer):
 
     # validate payload
 
-    def validate(self, attrs) -> Dict[any]:
+    def validate(self, attrs) -> Dict[str, str]:
         username: str = attrs.get("username")
         password1: str = attrs.get("password1")
         password2: str = attrs.get("password2")
@@ -64,7 +64,7 @@ class CreateUserSerializer(serializers.ModelSerializer):
 
     # create user
 
-    def create(self, validated_data):
+    def create(self, validated_data) -> CustomUser:
         """ Create the new user when serializer dot save is called
 
         Args:
