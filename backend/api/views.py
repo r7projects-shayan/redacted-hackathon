@@ -4,6 +4,7 @@ from .serializers import CreateUserSerializer
 from typing import Dict
 from sparky_utils.advice import exception_advice
 from sparky_utils.response import service_response
+from rest_framework.authtoken.models import Token
 # Create your views here.
 
 
@@ -17,5 +18,22 @@ class RootAPIView(APIView):
         return service_response(status="success", message="Welcome, Glad to see you", status_code=200)
 
 
-# class RegisterAPIView(APIView):
+class RegisterAPIView(APIView):
     serializer_class = CreateUserSerializer
+
+    @exception_advice
+    def post(self, request, *args, **kwargs):
+        """Register post handler
+        """
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            # get a token
+            token = Token.objects.create(user=user)
+            data = {
+                "username": user.username,
+                "token": token.key
+            }
+            return service_response(status="success", data=data, status_code=201, message="User Registered Successfully")
+
+        return service_response(status="error", message=serializer.errors, status_code=400)
