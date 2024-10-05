@@ -48,14 +48,10 @@ class CreateUserSerializer(serializers.ModelSerializer):
     # validate payload
 
     def validate(self, attrs) -> Dict[str, str]:
-        username: str = attrs.get("username")
         password1: str = attrs.get("password1")
         password2: str = attrs.get("password2")
 
         # check if username exist
-        if User.objects.filter(username__iexact=username).exists():
-            raise ServiceException(
-                message="User with this username already exists", status_code=409)
         if password1 != password2:
             raise ServiceException(
                 message="Passwords does not match!", status_code=400)
@@ -73,3 +69,8 @@ class CreateUserSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(
             username=validated_data["username"], password=validated_data["password1"])
         return user
+
+
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField(required=True)
+    password = serializers.CharField(required=True)

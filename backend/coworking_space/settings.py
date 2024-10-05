@@ -77,6 +77,8 @@ TEMPLATES = [
     },
 ]
 
+AUTH_USER_MODEL = "api.CustomUser"
+
 WSGI_APPLICATION = 'coworking_space.wsgi.application'
 
 REST_FRAMEWORK = {
