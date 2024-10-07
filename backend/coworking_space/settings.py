@@ -40,9 +40,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
+
     # third party apps
     "rest_framework",
+    "rest_framework.authtoken",
     "corsheaders",
     # project apps
     "api",
@@ -75,6 +76,8 @@ TEMPLATES = [
         },
     },
 ]
+
+AUTH_USER_MODEL = "api.CustomUser"
 
 WSGI_APPLICATION = 'coworking_space.wsgi.application'
 

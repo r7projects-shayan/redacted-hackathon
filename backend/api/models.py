@@ -3,6 +3,8 @@ from django.contrib.auth.models import AbstractBaseUser, UserManager, Permission
 from typing import Any
 from django.db import transaction
 from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
 # Create your models here.
 
 
@@ -51,11 +53,24 @@ class CustomUserManager(UserManager):
         return user
 
 
-class CustomUser(AbstractBaseUser):
+class CustomUser(AbstractBaseUser, PermissionsMixin):
     objects = CustomUserManager()
+    username = models.CharField(
+        verbose_name=_("Username"),
+        max_length=30,
+        unique=True,)
     xp = models.IntegerField(default=0)
     tokens = models.IntegerField(default=0)
     potions = models.IntegerField(default=0)
+    is_staff = models.BooleanField(
+        _("staff status"),
+        default=False,
+        help_text=_(
+            "Designates whether the user can log into this admin site."),
+    )
+    date_joined = models.DateTimeField(_("date joined"), default=timezone.now)
+
+    USERNAME_FIELD = "username"
 
     def __str__(self):
         return self.username
