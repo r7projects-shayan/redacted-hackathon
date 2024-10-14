@@ -30,8 +30,9 @@ class RegisterAPIView(APIView):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
+            print(user)
             # get a token
-            token = Token.objects.create(user=user)
+            token, created = Token.objects.get_or_create(user=user)
             data = {
                 "username": user.username,
                 "token": token.key
