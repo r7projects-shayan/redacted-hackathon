@@ -33,12 +33,11 @@ class RegisterAPIView(APIView):
             print(user)
             # get a token
             token, created = Token.objects.get_or_create(user=user)
-
             data = {
                 "username": user.username,
                 "token": token.key
             }
-            
+
             return service_response(status="success", data=data, status_code=201, message="User Registered Successfully")
 
         return service_response(status="error", message=serializer.errors, status_code=400)
