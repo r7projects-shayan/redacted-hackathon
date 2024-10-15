@@ -23,3 +23,4 @@ urlpatterns = [
     path("", RootAPIView.as_view(), name="root"),
     path("api/v1/", include("api.urls")),
 ]
+
