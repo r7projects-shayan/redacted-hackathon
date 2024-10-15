@@ -159,3 +159,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOG_LEVEL = logging.INFO
 
 logger_config = LoggerConfig(log_level=LOG_LEVEL)
+
