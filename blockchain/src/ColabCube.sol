@@ -16,6 +16,8 @@ contract ColabCube is AccessControl {
 
     /// @notice Role identifier for managers who can perform certain administrative actions
     bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
+    /// @notice Role identifier for managers who can perform certain administrative actions
+    bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
 
     /// @notice Reference to the ColabCubeCreditToken contract
     ColabCubeCreditToken public token;
@@ -45,6 +47,9 @@ contract ColabCube is AccessControl {
     /// @notice Stores the price of connection tasks based on user levels
     mapping(uint256 level => uint256 price) public taskPrice;
 
+    /// @notice Stores matching tokens against level
+    mapping(uint256 level => uint256 amount) public tokensByLevel;
+
     //////////////////////////
     /////// Events ///////////
     //////////////////////////
@@ -64,6 +69,11 @@ contract ColabCube is AccessControl {
     /// @param expirationDate The new expiration date for the subscription
     event SubscriptionUpdated(address indexed user, uint256 expirationDate);
 
+    /// @dev Event emitted when a token amount is assigned to a level
+    /// @param level The level for the token
+    /// @param amount The amount of tokens assigned
+    event LevelTokenUpdated(uint256 level, uint256 amount);
+
     /**
      * @dev Constructor for the ColabCube contract.
      * @param _token Address of the ColabCubeCreditToken contract.
@@ -73,6 +83,19 @@ contract ColabCube is AccessControl {
         token = _token;
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(MANAGER_ROLE, manager);
+    }
+
+    /**
+     * @notice Sets token amount for each level
+     * @param level The users level
+     * @param amount The amount of tokens associated with the level
+     */
+    function setTokenForLevels(
+        uint256 level,
+        uint256 amount
+    ) external onlyRole(ADMIN_ROLE) {
+        tokensByLevel[level] = amount;
+        emit LevelTokenUpdated(level, amount);
     }
 
     /**
@@ -87,6 +110,27 @@ contract ColabCube is AccessControl {
         );
 
         token.mint(user, MONTHLY_TOKENS);
+        lastClaimed[user] = block.timestamp;
+
+        emit TokensAssigned(user, MONTHLY_TOKENS);
+    }
+
+    /**
+     * @notice Assign 1000 tokens to a user monthly.
+     * @dev Mints MONTHLY_TOKENS to the specified user if they haven't claimed within the last 30 days.
+     * @param user The address of the user receiving the tokens.
+     * @param level The level of the user receiving the tokens.
+     */
+    function assignMonthlyTokensByLevel(
+        address user,
+        uint256 level
+    ) external onlyRole(MANAGER_ROLE) {
+        require(
+            block.timestamp >= lastClaimed[user] + 30 days,
+            "Monthly tokens already claimed"
+        );
+
+        token.mint(user, tokensByLevel[level]);
         lastClaimed[user] = block.timestamp;
 
         emit TokensAssigned(user, MONTHLY_TOKENS);
