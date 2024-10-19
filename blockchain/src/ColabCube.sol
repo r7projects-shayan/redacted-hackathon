@@ -219,4 +219,15 @@ contract ColabCube is AccessControl {
     ) public view returns (uint256) {
         return (tokenAmount * 1 ether) / 1000; // Example calculation, should integrate a price feed
     }
+
+    /**
+     * @notice Allow for checking amount of tokens for a level.
+     * @param level The level in focus.
+     * @return The the amount of tokens for the specified level.
+     */
+    function getTokenAmountForLevel(
+        uint256 level
+    ) public view returns (uint256) {
+        return tokensByLevel[level];
+    }
 }
