@@ -3,6 +3,9 @@ pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "./ColabCubeCreditToken.sol";
+import "@pythnetwork/pyth-sdk-solidity/IPyth.sol";
+import "@pythnetwork/pyth-sdk-solidity/PythStructs.sol";
+import "./MultiSigTreasury.sol";
 
 /**
  * @title ColabCube
@@ -14,6 +17,10 @@ contract ColabCube is AccessControl {
     /////// Variables ////////
     //////////////////////////
 
+    ///Pyth network
+    IPyth pyth;
+    int32 constant ETH_IN_WEI_EXPO = 18;
+
     /// @notice Role identifier for managers who can perform certain administrative actions
     bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
     /// @notice Role identifier for managers who can perform certain administrative actions
@@ -21,6 +28,9 @@ contract ColabCube is AccessControl {
 
     /// @notice Reference to the ColabCubeCreditToken contract
     ColabCubeCreditToken public token;
+
+    /// @notice Reference to the Treasury contract
+    address public treasury;
 
     /// @notice The fixed token amount assigned monthly to each user (1000 tokens with 18 decimals)
     uint256 public constant MONTHLY_TOKENS = 1000e18;
@@ -50,6 +60,9 @@ contract ColabCube is AccessControl {
     /// @notice Stores matching tokens against level
     mapping(uint256 level => uint256 amount) public tokensByLevel;
 
+    /// @notice Stores matching tokens against usd price
+    mapping(uint256 tokenAmount => uint256 usdPrice) public tokenUsdPrices;
+
     //////////////////////////
     /////// Events ///////////
     //////////////////////////
@@ -74,15 +87,36 @@ contract ColabCube is AccessControl {
     /// @param amount The amount of tokens assigned
     event LevelTokenUpdated(uint256 level, uint256 amount);
 
+    /// @dev Event emitted when a user buys a token
+    /// @param amountUsd The usd price for the token
+    /// @param amount The amount of tokens assigned
+    event TokenPurchased(uint256 amountUsd, uint256 amount);
+
+    /// @dev Event emitted when usd price for a token amount is set
+    /// @param usdPrice The usd price for the token
+    /// @param tokenAmount The amount of tokens to assign
+    event TokenUsdPriceUpdated(uint256 tokenAmount, uint256 usdPrice);
+
     /**
      * @dev Constructor for the ColabCube contract.
+     * @param pythContract The address of the Pyth contract
      * @param _token Address of the ColabCubeCreditToken contract.
+     * @param _treasury Address of the Treasury contract.
      * @param manager Address with the MANAGER_ROLE, allowed to manage administrative tasks.
      */
-    constructor(ColabCubeCreditToken _token, address manager) {
+    constructor(
+        address pythContract,
+        ColabCubeCreditToken _token,
+        address _treasury,
+        address manager
+    ) {
         token = _token;
+        treasury = _treasury;
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(MANAGER_ROLE, manager);
+        // The IPyth interface from pyth-sdk-solidity provides the methods to interact with the Pyth contract.
+        // Instantiate it with the Pyth contract address from https://docs.pyth.network/price-feeds/contract-addresses/evm
+        pyth = IPyth(pythContract);
     }
 
     /**
@@ -96,6 +130,19 @@ contract ColabCube is AccessControl {
     ) external onlyRole(ADMIN_ROLE) {
         tokensByLevel[level] = amount;
         emit LevelTokenUpdated(level, amount);
+    }
+
+    /**
+     * @notice Sets usd price for token amounts
+     * @param price The price for the token
+     * @param amount The amount of tokens associated with the price
+     */
+    function setTokenUsdPrice(
+        uint256 price,
+        uint256 amount
+    ) external onlyRole(ADMIN_ROLE) {
+        tokenUsdPrices[amount] = price;
+        emit TokenUsdPriceUpdated(amount, price);
     }
 
     /**
@@ -201,23 +248,58 @@ contract ColabCube is AccessControl {
     /**
      * @notice Allow users to buy additional tokens by sending ETH.
      * @dev Mints tokens based on the amount of ETH sent, ensuring enough ETH is provided.
+     * @param priceUpdate The encoded data to update the contract with the latest price
      * @param amount The amount of tokens the user wishes to purchase.
      */
-    function buyTokens(uint256 amount) external payable {
-        require(msg.value >= getEthEquivalent(amount), "Insufficient funds");
-        token.transfer(msg.sender, amount);
-    }
+    function buyTokens(
+        uint256 amount,
+        bytes[] memory priceUpdate
+    ) external payable {
+        uint256 amountUsd = tokenUsdPrices[amount];
+        require(amountUsd > 0, "Invalid token amount");
 
-    /**
-     * @notice Calculate the equivalent ETH value for a given token amount.
-     * @dev Currently a placeholder function. This should integrate with a price feed or other mechanism.
-     * @param tokenAmount The amount of tokens to convert to ETH.
-     * @return The equivalent amount of ETH required for the specified tokens.
-     */
-    function getEthEquivalent(
-        uint256 tokenAmount
-    ) public view returns (uint256) {
-        return (tokenAmount * 1 ether) / 1000; // Example calculation, should integrate a price feed
+        // Submit a priceUpdate to the Pyth contract to update the on-chain price.
+        // Updating the price requires paying the fee returned by getUpdateFee.
+        // WARNING: These lines are required to ensure the getPriceNoOlderThan call below succeeds. If you remove them, transactions may fail with "0x19abf40e" error.
+        uint fee = pyth.getUpdateFee(priceUpdate);
+        pyth.updatePriceFeeds{value: fee}(priceUpdate);
+
+        // Read the current price from a price feed if it is less than 60 seconds old.
+        // Each price feed (e.g., ETH/USD) is identified by a price feed ID.
+        // The complete list of feed IDs is available at https://pyth.network/developers/price-feed-ids
+        bytes32 priceFeedId = 0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace; // ETH/USD price feed Id.
+        PythStructs.Price memory currentEthPrice = pyth.getPriceNoOlderThan(
+            priceFeedId,
+            60
+        );
+
+        require(currentEthPrice.price >= 0, "Price must be a positive value");
+
+        uint256 amountInWei;
+
+        if (currentEthPrice.expo + ETH_IN_WEI_EXPO >= 0) {
+            amountInWei =
+                amountUsd *
+                uint(uint64(currentEthPrice.price)) *
+                10 ** uint32(ETH_IN_WEI_EXPO + currentEthPrice.expo);
+        } else {
+            amountInWei =
+                (amountUsd * uint(uint64(currentEthPrice.price))) /
+                10 ** uint32(-(ETH_IN_WEI_EXPO + currentEthPrice.expo));
+        }
+
+        require(msg.value - fee >= amountInWei, "Insufficient token provided");
+
+        //transfer to treasury
+        payable(treasury).transfer(amountInWei);
+
+        //refund balance to user
+        payable(msg.sender).transfer(msg.value - amountInWei - fee);
+
+        //mint token for user
+        token.mint(msg.sender, amount);
+
+        emit TokenPurchased(amountUsd, amount);
     }
 
     /**
