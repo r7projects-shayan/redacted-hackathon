@@ -266,7 +266,7 @@ contract ColabCube is AccessControl {
 
         // Read the current price from a price feed if it is less than 60 seconds old.
         // Each price feed (e.g., ETH/USD) is identified by a price feed ID.
-        // The complete list of feed IDs is available at https://pyth.network/developers/price-feed-ids
+        // The complete list  of feed IDs is available at https://pyth.network/developers/price-feed-ids
         bytes32 priceFeedId = 0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace; // ETH/USD price feed Id.
         PythStructs.Price memory currentEthPrice = pyth.getPriceNoOlderThan(
             priceFeedId,

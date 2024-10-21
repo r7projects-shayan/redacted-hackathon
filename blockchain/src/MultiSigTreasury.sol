@@ -28,7 +28,7 @@ contract MultiSigTreasury {
         uint8 approvals; // Reduced size for more gas efficiency
     }
 
-    // List of all transactions
+    // List of all  transactions
     Transaction[] public transactions;
     mapping(uint256 => mapping(address => bool)) public approved;
 
