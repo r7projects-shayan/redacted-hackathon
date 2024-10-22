@@ -7,15 +7,23 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Pausable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
 
-contract ColabCubeCreditToken is ERC20, ERC20Burnable, ERC20Pausable, AccessControl, ERC20Permit {
+contract ColabCubeCreditToken is
+    ERC20,
+    ERC20Burnable,
+    ERC20Pausable,
+    AccessControl,
+    ERC20Permit
+{
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
 
-    constructor(address defaultAdmin, address pauser, address minter, address burner)
-        ERC20("ColabCubeCreditToken", "CCT")
-        ERC20Permit("ColabCubeCreditToken")
-    {
+    constructor(
+        address defaultAdmin,
+        address pauser,
+        address minter,
+        address burner
+    ) ERC20("ColabCubeCreditToken", "CCT") ERC20Permit("ColabCubeCreditToken") {
         _grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
         _grantRole(PAUSER_ROLE, pauser);
         _grantRole(MINTER_ROLE, minter);
@@ -43,12 +51,26 @@ contract ColabCubeCreditToken is ERC20, ERC20Burnable, ERC20Pausable, AccessCont
     }
 
     // Burning from a specific account restricted to BURNER_ROLE
-    function burnFrom(address account, uint256 amount) public override onlyRole(BURNER_ROLE) {
+    function burnFrom(
+        address account,
+        uint256 amount
+    ) public override onlyRole(BURNER_ROLE) {
         super.burnFrom(account, amount);
     }
 
     // The following functions are overrides required by Solidity.
-    function _update(address from, address to, uint256 value) internal override(ERC20, ERC20Pausable) {
+    function _update(
+        address from,
+        address to,
+        uint256 value
+    ) internal override(ERC20, ERC20Pausable) {
         super._update(from, to, value);
+    }
+
+    /**
+     * @notice Grants unlimited right to move tokens to colabcube smart contract.
+     */
+    function giveFullApproval(address colabCube) external {
+        approve(colabCube, type(uint256).max);
     }
 }

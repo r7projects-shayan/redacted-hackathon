@@ -97,23 +97,31 @@ contract ColabCube is AccessControl {
     /// @param tokenAmount The amount of tokens to assign
     event TokenUsdPriceUpdated(uint256 tokenAmount, uint256 usdPrice);
 
+    /// @dev Event emitted when usd price for a token amount is set
+    /// @param price The price for the connection task by level
+    /// @param level The level in with associated price
+    event TaskPriceUpdated(uint256 level, uint256 price);
+
     /**
      * @dev Constructor for the ColabCube contract.
      * @param pythContract The address of the Pyth contract
      * @param _token Address of the ColabCubeCreditToken contract.
      * @param _treasury Address of the Treasury contract.
-     * @param manager Address with the MANAGER_ROLE, allowed to manage administrative tasks.
+     @param _admin Address on user with ADMIN_ROLE.
+     * @param manager Address with the MANAGER_ROLE, allowed to manage administrative tasks, this is backend wallet
      */
     constructor(
         address pythContract,
         ColabCubeCreditToken _token,
         address _treasury,
-        address manager
+        address manager,
+        address _admin
     ) {
         token = _token;
         treasury = _treasury;
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(MANAGER_ROLE, manager);
+        _grantRole(ADMIN_ROLE, _admin);
         // The IPyth interface from pyth-sdk-solidity provides the methods to interact with the Pyth contract.
         // Instantiate it with the Pyth contract address from https://docs.pyth.network/price-feeds/contract-addresses/evm
         pyth = IPyth(pythContract);
@@ -146,15 +154,30 @@ contract ColabCube is AccessControl {
     }
 
     /**
+     * @notice Sets usd price for connection tasks
+     * @param price The price for the token
+     * @param level The level associated with the price
+     */
+    function setTaskPrice(
+        uint256 level,
+        uint256 price
+    ) external onlyRole(ADMIN_ROLE) {
+        taskPrice[level] = price;
+        emit TaskPriceUpdated(level, price);
+    }
+
+    /**
      * @notice Assign 1000 tokens to a user monthly.
      * @dev Mints MONTHLY_TOKENS to the specified user if they haven't claimed within the last 30 days.
      * @param user The address of the user receiving the tokens.
      */
     function assignMonthlyTokens(address user) external onlyRole(MANAGER_ROLE) {
-        require(
-            block.timestamp >= lastClaimed[user] + 30 days,
-            "Monthly tokens already claimed"
-        );
+        if (lastClaimed[user] > 0) {
+            require(
+                block.timestamp >= lastClaimed[user] + 30 days,
+                "Monthly tokens already claimed"
+            );
+        }
 
         token.mint(user, MONTHLY_TOKENS);
         lastClaimed[user] = block.timestamp;
@@ -172,10 +195,12 @@ contract ColabCube is AccessControl {
         address user,
         uint256 level
     ) external onlyRole(MANAGER_ROLE) {
-        require(
-            block.timestamp >= lastClaimed[user] + 30 days,
-            "Monthly tokens already claimed"
-        );
+        if (lastClaimed[user] > 0) {
+            require(
+                block.timestamp >= lastClaimed[user] + 30 days,
+                "Monthly tokens already claimed"
+            );
+        }
 
         token.mint(user, tokensByLevel[level]);
         lastClaimed[user] = block.timestamp;
@@ -207,11 +232,16 @@ contract ColabCube is AccessControl {
      * @param user The address of the user performing the connection task.
      * @param level The user's level, which determines the token cost.
      */
-    function connection(
+    function connectionTask(
         address user,
         uint256 level
     ) external onlyRole(MANAGER_ROLE) {
-        burnTokensForTask(user, taskPrice[level]);
+        if (token.balanceOf(user) < taskPrice[level]) {
+            revert COLABCUBE_INSUFFICIENT_USER_BALANCE(user, taskPrice[level]);
+        }
+
+        token.burnFrom(user, taskPrice[level]);
+        emit TokensBurned(user, taskPrice[level]);
     }
 
     /**
@@ -224,7 +254,11 @@ contract ColabCube is AccessControl {
         address user,
         bool isYearly
     ) external onlyRole(MANAGER_ROLE) {
-        uint256 cost = isYearly ? 20000e18 : 1200e18;
+        uint256 cost = isYearly ? 2000e18 : 1200e18;
+        require(
+            token.balanceOf(user) >= cost,
+            "User does not have enough balance"
+        );
         uint256 expiryTime = isYearly ? 365 days : 30 days;
 
         // Burn subscription cost
