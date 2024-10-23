@@ -77,14 +77,10 @@ class LarkAPIView(APIView):
     APP_ID = os.getenv('LARK_APP_ID') or 'bubble_lark_app_id'
     APP_SECRET = os.getenv('LARK_APP_SECRET') or 'bubble_lark_app_secret'
 
-    # Lark client configuration
-    def get_lark_client():
-        conf = Config.new_internal_app(APP_ID, APP_SECRET, DefaultLogger(level=LEVEL_DEBUG))
-        return Client(conf)
-
     def send_lark_message(request):
         # Getting the client
-        client = get_lark_client()
+        conf = Config.new_internal_app(APP_ID, APP_SECRET, DefaultLogger(level=LEVEL_DEBUG))
+        client = Client(conf)
 
         # Replace 'open_id' with a valid recipient open_id
         recipient_open_id = request.GET.get('open_id', 'default_open_id')  
