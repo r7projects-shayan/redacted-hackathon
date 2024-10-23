@@ -160,3 +160,5 @@ LOG_LEVEL = logging.INFO
 
 logger_config = LoggerConfig(log_level=LOG_LEVEL)
 
+LARK_APP_ID = 'bubble_lark_app_id'
+LARK_APP_SECRET = 'bubble_lark_app_secret'
