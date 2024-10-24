@@ -1,4 +1,5 @@
 [profile.default]
+rpc_url = "https://testnet.aurora.dev"
 src = "src"
 out = "out"
 libs = ["lib"]

@@ -5,19 +5,21 @@ import "forge-std/Test.sol";
 import "../src/ColabCube.sol";
 import "../src/ColabCubeCreditToken.sol";
 import "../src/MultiSigTreasury.sol";
-import "@pythnetwork/pyth-sdk-solidity/IPyth.sol";
-import "@pythnetwork/pyth-sdk-solidity/PythStructs.sol";
+import {MockPyth} from "@pythnetwork/pyth-sdk-solidity/MockPyth.sol";
 
 contract ColabCubeTest is Test {
     ColabCube colabCube;
     ColabCubeCreditToken token;
     MultiSigTreasury treasury;
-    address pyth;
 
     address owner = address(1);
     address manager = address(2);
     address admin = address(3);
     address user = address(4);
+
+    MockPyth public pyth;
+    bytes32 ETH_PRICE_FEED_ID = bytes32(uint256(0x1));
+    uint256 ETH_TO_WEI = 10 ** 18;
 
     function setUp() public {
         token = new ColabCubeCreditToken(owner, owner, owner, owner);
@@ -34,14 +36,15 @@ contract ColabCubeTest is Test {
         }
 
         treasury = new MultiSigTreasury(signers, 2);
-        pyth = 0x74f09cb3c7e2A01865f424FD14F6dc9A14E3e94E;
+        pyth = new MockPyth(60, 1);
 
         colabCube = new ColabCube(
             address(pyth),
             token,
             address(treasury),
             manager,
-            admin
+            admin,
+            ETH_PRICE_FEED_ID
         );
 
         // // Grant admin and manager roles to the appropriate addresses
@@ -183,5 +186,73 @@ contract ColabCubeTest is Test {
 
         // Verify token balance after subscription cost is deducted
         assertEq(token.balanceOf(user), 0, "Tokens were not burned correctly");
+    }
+
+    function createEthUpdate(
+        int64 ethPrice
+    ) private view returns (bytes[] memory) {
+        bytes[] memory updateData = new bytes[](1);
+        updateData[0] = pyth.createPriceFeedUpdateData(
+            ETH_PRICE_FEED_ID,
+            ethPrice * 100000,
+            10 * 100000,
+            -5,
+            ethPrice * 100000,
+            10 * 100000,
+            uint64(block.timestamp),
+            uint64(block.timestamp)
+        );
+
+        return updateData;
+    }
+
+    function setEthPrice(int64 ethPrice) private {
+        bytes[] memory updateData = createEthUpdate(ethPrice);
+        uint value = pyth.getUpdateFee(updateData);
+        vm.deal(address(this), value);
+        pyth.updatePriceFeeds{value: value}(updateData);
+    }
+
+    function testBuyToken() public {
+        // Set token amount for a level
+        vm.prank(admin);
+        colabCube.setTokenUsdPrice(1e18, 2);
+        // bytes[] memory = IPyth(pyth).getP
+        //         // Declare a fixed-size array
+        //         bytes[1] memory fixedArray = [bytes("ETH/USD")];
+
+        //         // Create a dynamic array of the same length
+        //         bytes[] memory data = new bytes[](fixedArray.length);
+
+        //         // Copy elements from the fixed array to the dynamic array
+        //         for (uint i = 0; i < fixedArray.length; i++) {
+        //             data[i] = fixedArray[i];
+        //         }
+
+        uint256 initialBal = treasury.getBalance();
+
+        bytes[] memory updateData = createEthUpdate(100);
+        // get this and add to frontend calculated price for the token amount in question
+        uint fee = pyth.getUpdateFee(updateData);
+
+        //user token purchase
+        vm.startPrank(user);
+        vm.deal(user, 300 ether);
+        colabCube.buyTokens{value: 300 ether}(1e18, updateData);
+        vm.stopPrank();
+
+        // Verify user balance for token purchase
+        assertEq(
+            token.balanceOf(user),
+            1e18,
+            "User did not get the expected token amount"
+        );
+        assertGt(
+            treasury.getBalance(),
+            initialBal,
+            "Treasury blance was not increased"
+        );
+
+        // console.log(treasury.getBalance(), fee);
     }
 }

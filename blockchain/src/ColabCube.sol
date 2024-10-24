@@ -7,6 +7,8 @@ import "@pythnetwork/pyth-sdk-solidity/IPyth.sol";
 import "@pythnetwork/pyth-sdk-solidity/PythStructs.sol";
 import "./MultiSigTreasury.sol";
 
+// import {console2} from "forge-std/Test.sol";
+
 /**
  * @title ColabCube
  * @dev ColabCube contract for managing user token assignments, subscriptions, and token burning.
@@ -20,6 +22,7 @@ contract ColabCube is AccessControl {
     ///Pyth network
     IPyth pyth;
     int32 constant ETH_IN_WEI_EXPO = 18;
+    bytes32 ETH_PRICE_FEED_ID;
 
     /// @notice Role identifier for managers who can perform certain administrative actions
     bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
@@ -107,15 +110,17 @@ contract ColabCube is AccessControl {
      * @param pythContract The address of the Pyth contract
      * @param _token Address of the ColabCubeCreditToken contract.
      * @param _treasury Address of the Treasury contract.
-     @param _admin Address on user with ADMIN_ROLE.
+     * @param _admin Address on user with ADMIN_ROLE.
      * @param manager Address with the MANAGER_ROLE, allowed to manage administrative tasks, this is backend wallet
+     * @param _ethPriceFeed Price feed id
      */
     constructor(
         address pythContract,
         ColabCubeCreditToken _token,
         address _treasury,
         address manager,
-        address _admin
+        address _admin,
+        bytes32 _ethPriceFeed
     ) {
         token = _token;
         treasury = _treasury;
@@ -125,6 +130,7 @@ contract ColabCube is AccessControl {
         // The IPyth interface from pyth-sdk-solidity provides the methods to interact with the Pyth contract.
         // Instantiate it with the Pyth contract address from https://docs.pyth.network/price-feeds/contract-addresses/evm
         pyth = IPyth(pythContract);
+        ETH_PRICE_FEED_ID = _ethPriceFeed;
     }
 
     /**
@@ -146,8 +152,8 @@ contract ColabCube is AccessControl {
      * @param amount The amount of tokens associated with the price
      */
     function setTokenUsdPrice(
-        uint256 price,
-        uint256 amount
+        uint256 amount,
+        uint256 price
     ) external onlyRole(ADMIN_ROLE) {
         tokenUsdPrices[amount] = price;
         emit TokenUsdPriceUpdated(amount, price);
@@ -301,7 +307,7 @@ contract ColabCube is AccessControl {
         // Read the current price from a price feed if it is less than 60 seconds old.
         // Each price feed (e.g., ETH/USD) is identified by a price feed ID.
         // The complete list  of feed IDs is available at https://pyth.network/developers/price-feed-ids
-        bytes32 priceFeedId = 0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace; // ETH/USD price feed Id.
+        bytes32 priceFeedId = ETH_PRICE_FEED_ID; // ETH/USD price feed Id.
         PythStructs.Price memory currentEthPrice = pyth.getPriceNoOlderThan(
             priceFeedId,
             60
@@ -322,7 +328,10 @@ contract ColabCube is AccessControl {
                 10 ** uint32(-(ETH_IN_WEI_EXPO + currentEthPrice.expo));
         }
 
-        require(msg.value - fee >= amountInWei, "Insufficient token provided");
+        // console2.log("required payment in wei");
+        // console2.log(amountUsd, amountInWei, fee, amountInWei + fee);
+
+        require(msg.value - fee >= amountInWei, "Insufficient funds provided");
 
         //transfer to treasury
         payable(treasury).transfer(amountInWei);
