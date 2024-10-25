@@ -12,6 +12,9 @@ import os
 from django.http import JsonResponse
 from larksuiteoapi import Config, DefaultLogger, LEVEL_DEBUG
 from larksuiteoapi.service.im.v1 import MessageService
+# from larksuiteoapi.service.auth.v3 import AppAccessTokenReqBody, AppAccessTokenRespBody # type: ignore
+# from larksuiteoapi.token import AppAccessTokenManager
+# from larksuiteoapi import Client
 
 class RootAPIView(APIView):
     """Root API View
