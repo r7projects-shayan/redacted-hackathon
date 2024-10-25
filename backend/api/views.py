@@ -9,7 +9,6 @@ from .models import CustomUser
 
 # Create your views here.
 
-
 class RootAPIView(APIView):
     """Root API View
     """

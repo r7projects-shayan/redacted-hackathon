@@ -7,7 +7,6 @@ from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 # Create your models here.
 
-
 class CustomUserManager(UserManager):
 
     # validate email
