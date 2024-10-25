@@ -8,6 +8,13 @@ from rest_framework.authtoken.models import Token
 from .models import CustomUser
 
 # Create your views here.
+import os
+from django.http import JsonResponse
+from larksuiteoapi import Config, DefaultLogger, LEVEL_DEBUG
+from larksuiteoapi.service.im.v1 import MessageService
+# from larksuiteoapi.service.auth.v3 import AppAccessTokenReqBody, AppAccessTokenRespBody # type: ignore
+# from larksuiteoapi.token import AppAccessTokenManager
+# from larksuiteoapi import Client
 
 class RootAPIView(APIView):
     """Root API View
@@ -64,3 +71,35 @@ class LoginAPIView(APIView):
             }
             return service_response(status="success", message="Login Successful", status_code=200, data=data)
         return service_response(status="error", message=serializer.errors, status_code=400)
+
+class LarkAPIView(APIView):
+    # Load Lark app settings from environment or Django settings
+    APP_ID = os.getenv('LARK_APP_ID') or 'bubble_lark_app_id'
+    APP_SECRET = os.getenv('LARK_APP_SECRET') or 'bubble_lark_app_secret'
+
+    def send_lark_message(request):
+        # Getting the client
+        conf = Config.new_internal_app(APP_ID, APP_SECRET, DefaultLogger(level=LEVEL_DEBUG))
+        client = Client(conf)
+
+        # Replace 'open_id' with a valid recipient open_id
+        recipient_open_id = request.GET.get('open_id', 'default_open_id')  
+        message_content = request.GET.get('message', 'Hello from Django!')
+
+        # Preparing the request body
+        req_body = CreateMessageReqBody(
+            receive_id_type='open_id',
+            content=f'{{"text":"{message_content}"}}',
+            msg_type='text'
+        )
+
+        try:
+            # Sending the message via Lark API
+            resp = client.im.v1.message.create(body=req_body, params={'receive_id': recipient_open_id})
+            
+            if resp.code == 0:
+                return JsonResponse({"status": "success", "message_id": resp.data.message_id})
+            else:
+                return JsonResponse({"status": "error", "error": resp.msg}, status=400)
+        except Exception as e:
+            return JsonResponse({"status": "error", "error": str(e)}, status=500)
