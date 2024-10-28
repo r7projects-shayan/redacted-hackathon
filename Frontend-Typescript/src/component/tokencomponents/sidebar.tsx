@@ -25,7 +25,7 @@ export function Sidebar() {
 
 
     return (
-        <div className={ ` z-20 text-black w-16 lg:w-64 md:w-16 sm:w-16  ${ isCollapsed ? 'lg:w-16 ' : 'lg:w-64 ' } transition-all min-h-screen border-e` }>
+        <div className={ ` z-20 text-black w-16 md:w-16 sm:w-16  ${ isCollapsed ? 'lg:w-16 ' : 'lg:w-64 ' } transition-all min-h-screen border-e` }>
             <div className="flex items-center justify-between p-4">
                 {/* Admin Dashboard Label with Arrow Icon */ }
                 <span className="text-xl font-bold flex items-center cursor-pointer" onClick={ toggleSidebar }>
