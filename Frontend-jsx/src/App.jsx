@@ -5,13 +5,15 @@ import MainGallery from "./component/mainGallery.jsx";
 import Collectibles from "./component/collectibles.jsx";
 import Virtual_world from "./component/virtual world.jsx";
 import DigitalCreationsGallery from "./component/DigitalCreationsGallery.jsx";
+import {Homepage} from "./Screen/Landing_Page/Homepage.jsx";
 
 
 function App() {
   return (
       <div>
         {/*<GithubCalender/>*/}
-        <TokenHomeScreen/>
+        {/*<TokenHomeScreen/>*/}
+          <Homepage/>
         <Routes>
           {/*<Route path="/art" element={<MainGallery/>}></Route>*/}
           {/*<Route path="/collectibles" element={<Collectibles/>}></Route>*/}
