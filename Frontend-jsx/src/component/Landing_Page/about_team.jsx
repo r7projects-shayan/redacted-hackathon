@@ -32,7 +32,7 @@ const contributor = [
 
 export function AboutTeam() {
     return (
-        <div className="p-5 border-b-2">
+        <div className="p-5 border-b-2" id="team">
             <div className="text-center">
                 <h3 className="text-6xl">Meet the Team</h3>
                 <h6 className="text-secondary font-light">These people work on making our product best.</h6>
