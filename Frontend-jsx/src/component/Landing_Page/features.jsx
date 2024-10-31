@@ -63,9 +63,9 @@ export function Features() {
 
     return (
         <div className="p-5 border-b-2" id="feature">
-            <h4 className="d-flex justify-content-center mb-5 text-6xl feature_heading relative">
-                Features
-                <span className="w-25 bg-blue-400 opacity-25 absolute bottom-0 h-50"></span>
+            <h4  className="d-flex  justify-content-center mb-5 text-6xl feature_heading relative">
+                <span className="z-10">Features</span>
+                <span  className="w-25 z-0 bg-blue-800 opacity-25 absolute bottom-0 h-50"></span>
             </h4>
             <div className="grid lg:grid-cols-3 grid-flow-row gap-10 md:grid-cols-2 grid-cols-1 sm:grid-cols-1">
                 {features.map((item)=> {

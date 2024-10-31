@@ -16,10 +16,10 @@ const demo = [
 
 export function Demo() {
     return (
-        <div className="p-5" id="demo">
+        <div className="p-5 " style={{backgroundColor : "rgb(15,15,15)"}} id="demo">
             <h4 className="d-flex justify-content-center  text-6xl feature_heading relative">
-                <span className="z-10">Demo</span>
-                <span className="w-25 z-4 bg-orange-400  absolute bottom-0 h-50"></span>
+                <span className="z-10 text-slate-300">Demo</span>
+                {/*<span className="w-25 z-4 bg-orange-400  absolute bottom-0 h-50"></span>*/}
             </h4>
 
             {demo.map((item,index)=>(
