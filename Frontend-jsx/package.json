@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@heroicons/react": "^1.0.6",
+    "@splinetool/react-spline": "^4.0.0",
+    "@splinetool/runtime": "^1.9.35",
     "bootstrap": "^5.3.3",
     "chart.js": "^4.4.4",
     "chartjs-plugin-zoom": "^2.0.1",

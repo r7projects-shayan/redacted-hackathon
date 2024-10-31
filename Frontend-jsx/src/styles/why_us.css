@@ -1,0 +1,39 @@
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script&family=Great+Vibes&family=Gruppo&family=Kalam&family=Montserrat+Alternates:wght@100&family=Orbitron:wght@500&family=Spectral:ital,wght@1,200;1,500;1,800&display=swap');
+
+@import url('https://fonts.googleapis.com/css2?family=Great+Vibes&family=Kalam&family=Spectral:ital,wght@1,200;1,500;1,800&display=swap');
+
+@import url('https://fonts.googleapis.com/css2?family=Great+Vibes&family=Gruppo&family=Kalam&family=Montserrat+Alternates:wght@100&family=Orbitron:wght@500&family=Spectral:ital,wght@1,200;1,500;1,800&display=swap');
+
+.heading{
+    /*font-family: 'Dancing Script', cursive;*/
+    font-family: 'Great Vibes', cursive;
+    letter-spacing: 2px;
+    overflow: hidden;
+    font-weight: 500;
+    font-size: 80px;
+    white-space : nowrap;
+}
+
+.heading .heading h4{
+
+    position: relative;
+
+}
+
+.heading .heading  h4::before{
+    content: '';
+    position: absolute;
+    width: 10%;
+    transform: scale(0);
+    height: 2px;
+    bottom: 0;
+    left: 45%;
+    align-content: center;
+    background-color: black;
+    transform-origin: bottom ;
+    transition: transform 0.4s ease-out;
+}
+.heading .heading h4:hover::before{
+    transform-origin:bottom center;
+    transform:  scale(1);
+}
