@@ -14,12 +14,12 @@ interface FooterLink {
 
 const Footer: FC = () => {
   const socialLinks: SocialLink[] = [
-    { icon: Github, href: '#', label: 'GitHub' },
+    { icon: Github, href: 'https://github.com/r7projects-shayan/redacted-hackathon', label: 'GitHub' },
     { icon: Twitter, href: '#', label: 'Twitter' },
     { icon: Mail, href: '#', label: 'Email' },
   ];
 
-  const Lisence: FooterLink[] = [
+  const UsefulLinks: FooterLink[] = [
     
     { label: 'Features', href: '#' },
     { label: 'why we are better', href: '#' },
@@ -64,9 +64,9 @@ const Footer: FC = () => {
 
           {/* Legal Links */}
           <div>
-            <h3 className="text-white font-semibold mb-4"><a>Lisence</a></h3>
+            <h3 className="text-white font-semibold mb-4"><a>Useful Links</a></h3>
             <ul className="space-y-2">
-              {Lisence.map(({ label, href }) => (
+              {UsefulLinks.map(({ label, href }) => (
                 <li key={label}>
                   <a href={href} className="hover:text-white transition-colors">
                     {label}
