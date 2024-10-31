@@ -74,13 +74,11 @@ The platform leverages Aurora blockchain to ensure decentralized membership, tok
    ```bash
    git clone https://github.com/yourusername/colabcube.git
    cd colabcube
-2. **Install dependencies
-
-
+2. **Install dependencies**
+   
         npm install
-3.Start the development server
-
-
+3. **Start the development server**
+   
         npm run dev
 ### Setting up Aurora Integration
 Install ethers.js and connect to the Aurora RPC to handle blockchain interactions.
