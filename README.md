@@ -27,13 +27,6 @@ ColabCube is a virtual coworking space that offers a collaborative environment f
 
 ColabCube’s ecosystem operates on CCT, an ERC-20 token for managing subscriptions, rewards, and premium features.
 
-### Token Details
-- **Monthly Credit**: 1,000 CCT per month (free) for each user.
-- **Spending Levels**:
-  - Level 1: 5 CCT
-  - Level 5: 30 CCT
-  - Level 50: 150 CCT
-  - Level 100: 300 CCT
 
 ### Premium Feature Costs
 - **AI Virtual Assistant**: 10 CCT per task
@@ -42,15 +35,6 @@ ColabCube’s ecosystem operates on CCT, an ERC-20 token for managing subscripti
 - **Meeting Notes**: 50 CCT per meeting
 - **Monthly Membership**: 1,200 CCT
 - **Yearly Membership**: 20,000 CCT
-
-## Recharge Packs (USD)
-
-| Tokens | Price  |
-|--------|--------|
-| 1,000  | $180   |
-| 5,000  | $850   |
-| 10,000 | $1,680 |
-| 30,000 | $5,050 |
 
 ## Aurora-Based dApp and Tokenomics
 
@@ -94,16 +78,16 @@ The platform leverages Aurora blockchain to ensure decentralized membership, tok
 
 
         npm install
-Start the development server
+3.Start the development server
 
 
-     npm run dev
-**Setting up Aurora Integration
+        npm run dev
+### Setting up Aurora Integration
 Install ethers.js and connect to the Aurora RPC to handle blockchain interactions.
 
-Fork the repository.
-Create a new branch.
-Commit your changes.
-Open a pull request.
+        Fork the repository.
+        Create a new branch.
+        Commit your changes.
+        Open a pull request.
 ### License
 This project is licensed under the MIT License.
