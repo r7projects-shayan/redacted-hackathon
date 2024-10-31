@@ -14,6 +14,13 @@
     white-space : nowrap;
 }
 
+@media (max-width: 1224px) {
+    .heading{
+        font-weight: 500;
+        font-size: 30px;
+    }
+}
+
 .heading .heading h4{
 
     position: relative;

@@ -1,0 +1,13 @@
+.form{
+    min-width: 600px;
+    left: 32%;
+    z-index: 99999;
+}
+
+@media (max-width: 1224px) {
+    .form{
+        min-width: 100%;
+        left: 0;
+        z-index: 99999;
+    }
+}

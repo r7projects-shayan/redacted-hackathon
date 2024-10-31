@@ -31,17 +31,17 @@ export function WhyUs() {
             <h2 className="text-center">Why Choose Us</h2>
             {data.map((item,index)=>(
                 index%2 === 0 ?
-                <div className="grid lg:grid-cols-2 md:grid-cols-2 grid-cols-1 sm:grid-cols-1 grid-flow-row p-5 justify-items-center align-items-center ">
+                <div className="grid lg:grid-cols-2 md:grid-cols-1 grid-cols-1 sm:grid-cols-1 grid-flow-row p-5 justify-items-center align-items-center ">
                     <iframe width="315" height="315" src={item.url}/>
                     <div className="text-sm d-flex flex-column text-justify lg:mt-0 md:mt-0 sm:mt-4 mt-4 bg-zinc-700 rounded-start-pill text-slate-200 p-20 ps-16 end-0 ">
                         <h4 className="heading ">{item.title}</h4>
-                        <div className="text-midium">{item.text}</div>
+                        <div className="text-lg">{item.text}</div>
                     </div>
                 </div> :
-                    <div className="grid lg:grid-cols-2 md:grid-cols-2 grid-cols-1 sm:grid-cols-1 grid-flow-row p-5 justify-items-center align-items-center ">
+                    <div className="grid lg:grid-cols-2 md:grid-cols-1 grid-cols-1 sm:grid-cols-1 grid-flow-row p-5 justify-items-center align-items-center ">
                         <div className="text-sm text-justify lg:mb-0 md:mb-0 sm:mb-4 mb-4 bg-zinc-700 rounded-end-pill text-slate-200 p-20 ps-16 ">
                             <h4 className="heading">{item.title}</h4>
-                            <div className="text-2xl">{item.text}</div>
+                            <div className="text-lg">{item.text}</div>
                         </div>
                         <iframe width="315" height="315" src={item.url}/>
                     </div>
